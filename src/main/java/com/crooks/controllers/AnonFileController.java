@@ -57,8 +57,12 @@ public class AnonFileController {
 
     @RequestMapping(path="/delete", method = RequestMethod.POST)
     public String deleteFile(int id, String password) throws Exception {
-        AnonFile fileToDelete = (AnonFile) anonFileRepo.findOne(id);
+        AnonFile fileToDelete = (AnonFile) anonFileRepo.findOne(id);//creating an object into which we insert the item(file) to delete
         if (PasswordStorage.verifyPassword(password, fileToDelete.getPassword())){
+
+            File fileOnDisk = new File("public/files/" + fileToDelete.getRealFileName());
+            fileOnDisk.delete(); //is highlighted bc we are not capturing the return value that that indicates the success of the deletion
+
             anonFileRepo.delete(id);
         }else{
             throw new Exception("Wrong Password Man, Move Along");

@@ -12,6 +12,7 @@ import org.springframework.data.repository.CrudRepository;
  * Created by johncrooks on 6/27/16.
  */
 public interface AnonFileRepository extends CrudRepository<AnonFile, Integer> {
+
     @Query("SELECT MIN(id) FROM AnonFile a WHERE a.isPerm=false")
     public int selectSmallestId();
 
