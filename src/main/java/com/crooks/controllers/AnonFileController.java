@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -42,32 +43,17 @@ public class AnonFileController {
         int nonPerms = anonFileRepo.countByIsPermFalse();
 
         if( nonPerms <4) {
-            File uploadedFile = File.createTempFile("file", file.getOriginalFilename(), dir);
-            FileOutputStream fos = new FileOutputStream(uploadedFile);
-            fos.write(file.getBytes());
-
-            if (description==null){
-                description = "Unknown File";
-            }
-            AnonFile anonFile = new AnonFile(file.getOriginalFilename(), uploadedFile.getName(), isPerm, description, PasswordStorage.createHash(password));
+            AnonFile anonFile = saveFile(file, dir, description, isPerm,password);
             anonFileRepo.save(anonFile);
         } else if (nonPerms==4){
-
-        int smallID = anonFileRepo.selectSmallestId();
+            int smallID = anonFileRepo.selectSmallestId();
             anonFileRepo.delete(smallID);
-            File uploadedFile = File.createTempFile("file", file.getOriginalFilename(), dir);
-            FileOutputStream fos = new FileOutputStream(uploadedFile);
-            fos.write(file.getBytes());
-
-            if (description==null){
-                description = "Unknown File";
-            }
-            AnonFile anonFile = new AnonFile(file.getOriginalFilename(), uploadedFile.getName(), isPerm, description, PasswordStorage.createHash(password));
+            AnonFile anonFile = saveFile(file, dir, description, isPerm,password);
             anonFileRepo.save(anonFile);
         }
         return "redirect:/";
 
-    } // End upload Method
+    } // End upload route
 
     @RequestMapping(path="/delete", method = RequestMethod.POST)
     public String deleteFile(int id, String password) throws Exception {
@@ -80,7 +66,18 @@ public class AnonFileController {
 
 
         return "redirect:/";
-    }
+    }// End delete route
 
+    public AnonFile saveFile(MultipartFile file, File dir, String description, Boolean isPerm, String password) throws PasswordStorage.CannotPerformOperationException, IOException {
+        File uploadedFile = File.createTempFile("file", file.getOriginalFilename(), dir);
+        FileOutputStream fos = new FileOutputStream(uploadedFile);
+        fos.write(file.getBytes());
+
+        if (description==null){
+            description = "Unknown File";
+        }
+        AnonFile anonFile = new AnonFile(file.getOriginalFilename(), uploadedFile.getName(), isPerm, description, PasswordStorage.createHash(password));
+        return anonFile;
+    }
 
 }  // End AnonFileController class
